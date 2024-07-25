@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/inder231/cms-app/inits"
+	"github.com/inder231/cms-app/pkg/api"
 )
 
 func main() {
@@ -21,6 +22,8 @@ func main() {
             "message": "pong",
         })
     })
+
+    api.RegisterRoutes(router)
 	
 	// Start the server
     router.Run()
