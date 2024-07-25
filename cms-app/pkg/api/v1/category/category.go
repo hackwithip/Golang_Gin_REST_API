@@ -10,15 +10,41 @@ import (
 
 func CreateCategory(c *gin.Context) {
 	var category models.Category
+
+	userId, ok := c.Get("userId")
+
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "User not authenticated"})
+		return
+	}
 	if err := c.ShouldBindJSON(&category); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
 		return
 	}
-	if result := inits.DB.Create(&category); result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Name must be unique"})
+
+	category.CreatedBy = userId.(uint)
+
+	categoryExist := inits.DB.Where("name = ?", category.Name).First(&category)
+
+	if categoryExist.RowsAffected > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Category with this name already exist.",
+		})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "Category created", "category": category})
+
+	if result := inits.DB.Create(&category); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create category!"})
+		return
+	}
+
+	categoryResp := models.CategoryCreationResponse{
+		ID: category.ID,
+		Name: category.Name,
+		Image: category.Image,
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Category created", "category": categoryResp})
 }
 
 func ListCategories(c *gin.Context) {
