@@ -1,5 +1,6 @@
 ### REST
 
+```
 cms-app/
 │
 ├── cmd/                  # Main application entry points
@@ -63,3 +64,4 @@ cms-app/
 ├── go.mod                # Go modules dependencies
 ├── go.sum                # Go modules checksum file
 └── README.md             # Project overview and setup instructions
+```
