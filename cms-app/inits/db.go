@@ -2,8 +2,10 @@ package inits
 
 import (
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/inder231/cms-app/pkg/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -25,6 +27,12 @@ func InitPgDB() {
     
     if err!= nil {
 		panic("Failed to connect to Database!")
+	}
+
+	// Auto-migrate the User model to create the users table
+	err = db.AutoMigrate(&models.User{}, &models.Author{})
+	if err != nil {
+		log.Fatal("Failed to auto-migrate User model:", err)
 	}
     
 	fmt.Println("Connected to the database!")
