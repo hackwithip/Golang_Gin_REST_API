@@ -1,0 +1,54 @@
+# Binaries
+/bin/
+/cmd/*/server
+/cmd/*/worker
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Build output
+*.out
+*.a
+*.cgo1.go
+*.cgo2.go
+*.go1.go
+*.go2.go
+
+# Vendor directory
+/vendor/
+
+# Go workspace files
+*.workspace
+
+# IDE or editor-specific files
+*.swp
+*.swo
+*.idea/
+*.vscode/
+*.classpath
+*.project
+*.settings/
+
+# Mac OS X specific files
+.DS_Store
+
+# Windows specific files
+Thumbs.db
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+
+# Environment files
+.env
+
+# Coverage files
+*.cov
+*.cover
