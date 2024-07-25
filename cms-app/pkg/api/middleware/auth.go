@@ -18,7 +18,7 @@ func Authenticate (c *gin.Context) {
 	
 	// Validate token
 	userId, err := utils.VerifyToken(token)
-	
+
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token, login again!"})
 		return
