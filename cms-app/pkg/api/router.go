@@ -5,6 +5,7 @@ import (
 	"github.com/inder231/cms-app/pkg/api/middleware"
 	"github.com/inder231/cms-app/pkg/api/v1/auth"
 	"github.com/inder231/cms-app/pkg/api/v1/author"
+	"github.com/inder231/cms-app/pkg/api/v1/blog"
 	"github.com/inder231/cms-app/pkg/api/v1/category"
 )
 
@@ -28,9 +29,9 @@ func RegisterRoutes( server *gin.Engine ){
 	authenticated.DELETE("authors/:id", author.DeleteAuthor)
 
 	// Blog routes
-	// authenticated.GET("/blogs", blog.GetBlogs)
-	// authenticated.POST("/blogs", blog.CreateBlog)
-	// authenticated.PUT("/blogs/:id", blog.UpdateBlog)
-	// authenticated.DELETE("/blogs/:id", blog.DeleteBlog)
+	authenticated.GET("/blogs", blog.GetBlog)
+	authenticated.POST("/blogs", blog.CreateBlog)
+	authenticated.PUT("/blogs/:id", blog.UpdateBlog)
+	authenticated.DELETE("/blogs/:id", blog.DeleteBlog)
 
 }
