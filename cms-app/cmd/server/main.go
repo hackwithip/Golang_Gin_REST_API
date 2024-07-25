@@ -4,13 +4,15 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/inder231/cms-app/pkg/utils"
+	"github.com/inder231/cms-app/inits"
 )
 
 func main() {
 
 	// Load environment variables
-	utils.LoadEnv()
+	inits.LoadEnv()
+    // Initialize Postgres DB
+    inits.InitPgDB()
 
     router := gin.Default()
 
