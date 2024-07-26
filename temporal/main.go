@@ -1,4 +1,4 @@
-package wroker
+package main
 
 import (
 	"context"
