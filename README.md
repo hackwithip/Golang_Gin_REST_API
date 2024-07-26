@@ -65,3 +65,9 @@ cms-app/
 ├── go.sum                # Go modules checksum file
 └── README.md             # Project overview and setup instructions
 ```
+
+### KEYCLOAK
+
+- Signup : -> Endpont : admin token -> 
+- Keycloak : signup upser => keycloak entry
+- Login -> table -> keycloak -> Token -> User
