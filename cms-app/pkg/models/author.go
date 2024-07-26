@@ -14,7 +14,7 @@ type AuthorCreationResponse struct {
 
 type Author struct {
 	ID    uint   `gorm:"primaryKey" json:"id"`
-	Name  string `gorm:"unique;not null" json:"name"`
+	Name  string `gorm:"unique;not null" json:"name" form:"name"`
 	Image string `json:"image"`
 	CreatedBy uint `json:"createdBy"`
 	CreatedAt time.Time      `json:"createdAt"`

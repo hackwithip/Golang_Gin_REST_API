@@ -2,6 +2,7 @@ package blog
 
 import (
 	"net/http"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/inder231/cms-app/inits"
@@ -10,13 +11,51 @@ import (
 
 func CreateBlog(c *gin.Context) {
 	var blog models.Blog
-	if err := c.ShouldBindJSON(&blog); err != nil {
+
+	userId, ok := c.Get("userId")
+
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "User not authenticated"})
+		return
+	}
+	
+	if err := c.ShouldBind(&blog); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid data"})
 		return
 	}
+
+	// Check if author already exist with same name
+	blogExist := inits.DB.Where("title = ?", blog.Title).First(&blog)
+
+	if blogExist.RowsAffected > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Blog with this title already exists.",
+		})
+		return
+	}
+
+	file, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Image upload failed"})
+		return
+	}
+
+	uploadDir := "uploads/blog"
+	// Construct the new filepath
+	filePath := filepath.Join(uploadDir, file.Filename)
+
+	// Save the uploaded file to the specified path
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to save image"})
+		return
+	}
+	blog.CreatedBy = userId.(uint) 
+	blog.Image = filePath
+
+
 	result := inits.DB.Create(&blog)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create blog"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": result.Error})
 		return
 	}
 	c.JSON(http.StatusCreated, blog)

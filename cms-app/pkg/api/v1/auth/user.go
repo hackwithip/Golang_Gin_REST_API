@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -31,6 +32,8 @@ func Signup(c *gin.Context) {
 		return
 	}
 
+	providedPassword := user.Password
+
 	// Hash password
 	hashedPassword, err := utils.HashedPassword(user.Password)
 
@@ -38,7 +41,6 @@ func Signup(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
-
 	// Update User password with hashed password
 	user.Password = hashedPassword
 
@@ -50,7 +52,13 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	err = inits.TriggerEmailWorkflow(user.Email, "Welcome to Our Service", "Thank you for registering with us!")
+    emailBody := fmt.Sprintf(
+		"Dear %s,\nThank you for registering with us! \n Below are the details provided for signup.\n\n Email: %s\n Password: %s\n\n. Best Regards!",
+        user.Name,
+        user.Email,
+		providedPassword,
+    )
+	err = inits.TriggerEmailWorkflow(user.Email, "Welcome to Our Service", emailBody)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to send registration email"})
 		return

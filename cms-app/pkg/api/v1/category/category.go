@@ -1,7 +1,9 @@
 package category
 
 import (
+	"fmt"
 	"net/http"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/inder231/cms-app/inits"
@@ -17,7 +19,15 @@ func CreateCategory(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "User not authenticated"})
 		return
 	}
-	if err := c.ShouldBindJSON(&category); err != nil {
+
+	file, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Image upload failed"})
+		return
+	}
+
+	if err := c.ShouldBind(&category); err != nil {
+		fmt.Println("---binding error---", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
 		return
 	}
@@ -32,6 +42,18 @@ func CreateCategory(c *gin.Context) {
 		})
 		return
 	}
+	uploadDir := "uploads/category"
+	// Construct the new filepath
+	filePath := filepath.Join(uploadDir, file.Filename)
+
+	// Save the uploaded file to the specified path
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to save image"})
+		return
+	}
+	category.CreatedBy = userId.(uint) 
+	category.Image = filePath
+
 
 	if result := inits.DB.Create(&category); result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to create category!"})
