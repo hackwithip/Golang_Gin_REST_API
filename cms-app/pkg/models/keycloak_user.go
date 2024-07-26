@@ -9,7 +9,6 @@ import (
 type KeycloakUser struct {
 	ID       string 		 `gorm:"primaryKey" json:"id"`
 	UserID   uint   		 `json:"userId"`
-	User     User            `gorm:"foreignKey:ID" json:"user"`
 	Name     string  		 `gorm:"size;255;not null" json:"name"`
 	Email    string 		 `gorm:"size:255;not null;unique" json:"email"`
 	Password  string         `gorm:"size:255;not null" json:"password"`

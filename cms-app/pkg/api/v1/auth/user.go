@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/inder231/cms-app/inits"
 	"github.com/inder231/cms-app/pkg/models"
+	"github.com/inder231/cms-app/pkg/services"
 	"github.com/inder231/cms-app/pkg/utils"
 	"gorm.io/gorm"
 )
@@ -44,11 +45,47 @@ func Signup(c *gin.Context) {
 	// Update User password with hashed password
 	user.Password = hashedPassword
 
+	// Get keycloak admin token
+	keyCloakAdminTokenResp, err := services.GetKeycloakAdminToken()
+	if err!= nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get Keycloak admin token"})
+        return
+    }
+
+	accessToken := keyCloakAdminTokenResp.AccessToken
+
+	keycloakRdmPassword, status := services.CreateKeycloakUser(accessToken, user.Email)
+	if !status {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Keycloak user"})
+        return
+	}
+	userId, err := services.GetKeycloakUser(accessToken, user.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get Keycloak user"})
+        return
+	}
 	// Store user in DB
 	result := inits.DB.Create(&user)
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error})
+		return
+	}
+
+	// Store user in keycloak table
+	keycloakUser := models.KeycloakUser{
+		ID:        userId,
+		UserID:    user.ID,
+		Name:      user.Name,
+		Email:     user.Email,
+		Password:  keycloakRdmPassword,
+		RealmName: "master",
+		Status:    "Active",
+	}
+
+	keycloakTableEntry := inits.DB.Create(&keycloakUser)
+	if keycloakTableEntry.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Keycloak user entry in database"})
 		return
 	}
 

@@ -1,10 +1,15 @@
 package services
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/inder231/cms-app/pkg/utils"
 )
 
 const GrantType string = "password"
@@ -23,6 +28,19 @@ type KeyCloakAdminTokenResponse struct {
 	NotBeforePolicy    int    `json:"not-before-policy"`
 	SessionState       string `json:"session_state"`
 	Scope              string `json:"scope"`
+}
+
+type Credentials struct {
+	Type string `json:"type"`
+	Value string `json:"value"`
+	Temporary bool `json:"temporary"`
+}
+
+type KeycloakUser struct {
+	Username string `json:"username"`
+	Email string `json:"email"`
+	Enabled bool `json:"enabled"`
+	Credentials []Credentials `json:"credentials"`
 }
 
 
@@ -61,11 +79,102 @@ func GetKeycloakAdminToken() (*KeyCloakAdminTokenResponse, error) {
 	return &tokenResp, nil
 }
 
-func CreateKeycloakUser() {
+func CreateKeycloakUser(adminToken, email string) (string, bool) {
+	apiEndpoint := "/admin/realms/master/users"
+	apiURL := KeyCloakBaseUrl + apiEndpoint
 
+	// Generate random password to store in keycloak
+	randomPassword := utils.GenerateRandomPassword()
+
+	user := KeycloakUser{
+		Username: email,
+		Email:    email,
+        Enabled: true,
+        Credentials: []Credentials{
+			{
+				Type: "password",
+				Value: randomPassword,
+				Temporary: false,
+			},
+		},
+	}
+	jsonData, err := json.Marshal(user)
+
+	if err!= nil {
+		fmt.Println("ERROR: failed to marshal user data", err)
+        return "", false
+    }
+	// Make POST api call to keycloak to create new user in master realm
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonData))
+
+	if err!= nil {
+        fmt.Println("ERROR: failed to create request", err)
+        return "", false
+    }
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer " + adminToken)
+	
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("ERROR: failed to send request", err)
+		return "", false
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		fmt.Println("ERROR: failed to create user", resp)
+		return "", false
+	}
+
+	fmt.Println("SUCCESS: User created successfully in keycloak", resp)
+
+	return randomPassword, true
 }
 
-func GetKeycloakUser() {
+func GetKeycloakUser(adminToken, email string) (string, error) {
+	apiEndpoint := "/admin/realms/master/users"
+	apiURL := KeyCloakBaseUrl + apiEndpoint
+
+
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		fmt.Println("ERROR: failed to create request", err)
+		return "", err
+	}
+
+	q := req.URL.Query()
+	q.Add("email", email)
+	req.URL.RawQuery = q.Encode()
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", adminToken))
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("ERROR: failed to make request", err)
+		return "", err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("ERROR: failed to get user", resp)
+		return "", errors.New("failed to get user")
+	}
+
+	var users []struct {
+        ID string `json:"id"`
+    }
+	if err := json.NewDecoder(resp.Body).Decode(&users); err != nil {
+		fmt.Println("ERROR: failed to decode response", err)
+		return "", err
+	}
+	
+    if len(users) == 0 {
+        return "", fmt.Errorf("user not found")
+    }
+	return users[0].ID, nil
 
 }
 
