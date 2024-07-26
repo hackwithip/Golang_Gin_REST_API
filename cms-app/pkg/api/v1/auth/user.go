@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Signup (c *gin.Context) {
+func Signup(c *gin.Context) {
 
 	var user models.User
 
@@ -20,7 +20,7 @@ func Signup (c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not paser request body."})
 		return
 	}
-	
+
 	// Check if email already exist
 	isUserAlreadyExist := inits.DB.Where("email = ?", user.Email).Find(&user)
 
@@ -41,25 +41,30 @@ func Signup (c *gin.Context) {
 
 	// Update User password with hashed password
 	user.Password = hashedPassword
-	
+
 	// Store user in DB
 	result := inits.DB.Create(&user)
-	
+
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error})
 		return
 	}
 
+	err = inits.TriggerEmailWorkflow(user.Email, "Welcome to Our Service", "Thank you for registering with us!")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to send registration email"})
+		return
+	}
 	userResponse := models.UserResponse{
-		ID: user.ID,
+		ID:    user.ID,
 		Name:  user.Name,
-        Email: user.Email,
+		Email: user.Email,
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"message": "User registered!", "user": userResponse})
 }
 
-func Login (c *gin.Context) {
+func Login(c *gin.Context) {
 	// Use two variables one to store request body user and one to hold user from db
 	var user models.User
 	var existingUser models.User
@@ -70,7 +75,7 @@ func Login (c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Could not paser request body."})
 		return
 	}
-	
+
 	// Check if email already exist
 	result := inits.DB.Where("email = ?", user.Email).First(&existingUser)
 	if result.Error != nil {
@@ -84,19 +89,19 @@ func Login (c *gin.Context) {
 	// Validate password
 	passwordIsValid := utils.CheckPasswordHash(user.Password, existingUser.Password)
 
-    if !passwordIsValid {
-        c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password."})
-        return
-    }
+	if !passwordIsValid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password."})
+		return
+	}
 
 	// Generate token
 	token, err := utils.GenerateToken(existingUser.Email, existingUser.ID)
 
-    if err!= nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
-        return
-    }
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
 
-    c.JSON(http.StatusOK, gin.H{"message": "Login successful!", "token": token})
-	
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful!", "token": token})
+
 }
