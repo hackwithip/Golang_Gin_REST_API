@@ -2,6 +2,7 @@ package author
 
 import (
 	"net/http"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/inder231/cms-app/inits"
@@ -17,12 +18,17 @@ func CreateAuthor(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "User not authenticated"})
 		return
 	}
-	if err := c.ShouldBindJSON(&author); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid data"})
+
+	file, err := c.FormFile("image")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Image upload failed"})
 		return
 	}
 
-	author.CreatedBy = userId.(uint) 
+	if err := c.ShouldBind(&author); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid data"})
+		return
+	}
 
 	// Check if author already exist with same name
 	authorExist := inits.DB.Where("name = ?", author.Name).First(&author)
@@ -33,6 +39,18 @@ func CreateAuthor(c *gin.Context) {
 		})
 		return
 	}
+
+	uploadDir := "uploads/author"
+	// Construct the new filepath
+	filePath := filepath.Join(uploadDir, file.Filename)
+
+	// Save the uploaded file to the specified path
+	if err := c.SaveUploadedFile(file, filePath); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to save image"})
+		return
+	}
+	author.CreatedBy = userId.(uint) 
+	author.Image = filePath
 
 	result := inits.DB.Create(&author)
 

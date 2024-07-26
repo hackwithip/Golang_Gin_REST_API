@@ -30,7 +30,7 @@ func InitPgDB() {
 	}
 
 	// Auto-migrate the User model to create the users table
-	err = db.AutoMigrate(&models.User{}, &models.Author{}, &models.Category{})
+	err = db.AutoMigrate(&models.User{}, &models.Author{}, &models.Category{}, &models.Blog{})
 	if err != nil {
 		log.Fatal("Failed to auto-migrate User model:", err)
 	}

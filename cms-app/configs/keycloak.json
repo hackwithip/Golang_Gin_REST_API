@@ -1,0 +1,10 @@
+{
+  "realm": "cms",
+  "auth-server-url": "http://0.0.0.0:8080/",
+  "ssl-required": "external",
+  "resource": "keycloackclientid",
+  "credentials": {
+    "secret": "QNrrwNAXuWhqL6zWWrbFdqpRmDVbQW0R"
+  },
+  "confidential-port": 0
+}
