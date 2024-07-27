@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/inder231/cms-app/pkg/utils"
 )
 
 const GrantType string = "password"
@@ -79,12 +77,12 @@ func GetKeycloakAdminToken() (*KeyCloakAdminTokenResponse, error) {
 	return &tokenResp, nil
 }
 
-func CreateKeycloakUser(adminToken, email string) (string, bool) {
+func CreateKeycloakUser(adminToken, email, password string)  bool {
 	apiEndpoint := "/admin/realms/master/users"
 	apiURL := KeyCloakBaseUrl + apiEndpoint
 
 	// Generate random password to store in keycloak
-	randomPassword := utils.GenerateRandomPassword()
+	// randomPassword := utils.GenerateRandomPassword()
 
 	user := KeycloakUser{
 		Username: email,
@@ -93,7 +91,7 @@ func CreateKeycloakUser(adminToken, email string) (string, bool) {
         Credentials: []Credentials{
 			{
 				Type: "password",
-				Value: randomPassword,
+				Value: password,
 				Temporary: false,
 			},
 		},
@@ -102,14 +100,14 @@ func CreateKeycloakUser(adminToken, email string) (string, bool) {
 
 	if err!= nil {
 		fmt.Println("ERROR: failed to marshal user data", err)
-        return "", false
+        return false
     }
 	// Make POST api call to keycloak to create new user in master realm
 	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonData))
 
 	if err!= nil {
         fmt.Println("ERROR: failed to create request", err)
-        return "", false
+        return false
     }
 
 	req.Header.Set("Content-Type", "application/json")
@@ -119,18 +117,18 @@ func CreateKeycloakUser(adminToken, email string) (string, bool) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("ERROR: failed to send request", err)
-		return "", false
+		return false
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
 		fmt.Println("ERROR: failed to create user", resp)
-		return "", false
+		return false
 	}
 
 	fmt.Println("SUCCESS: User created successfully in keycloak", resp)
 
-	return randomPassword, true
+	return true
 }
 
 func GetKeycloakUser(adminToken, email string) (string, error) {
