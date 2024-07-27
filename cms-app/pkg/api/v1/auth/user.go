@@ -54,7 +54,7 @@ func Signup(c *gin.Context) {
 
 	accessToken := keyCloakAdminTokenResp.AccessToken
 
-	keycloakRdmPassword, status := services.CreateKeycloakUser(accessToken, user.Email)
+	status := services.CreateKeycloakUser(accessToken, user.Email, providedPassword)
 	if !status {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create Keycloak user"})
         return
@@ -78,7 +78,7 @@ func Signup(c *gin.Context) {
 		UserID:    user.ID,
 		Name:      user.Name,
 		Email:     user.Email,
-		Password:  keycloakRdmPassword,
+		Password:  hashedPassword,
 		RealmName: "master",
 		Status:    "Active",
 	}
