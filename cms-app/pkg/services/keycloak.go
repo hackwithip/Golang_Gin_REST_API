@@ -42,15 +42,15 @@ type KeycloakUser struct {
 }
 
 
-func GetKeycloakAdminToken() (*KeyCloakAdminTokenResponse, error) {
+func GetKeycloakAccessToken( username, password string) (*KeyCloakAdminTokenResponse, error) {
 	apiEndpoint := "/realms/master/protocol/openid-connect/token"
 	apiURL := KeyCloakBaseUrl + apiEndpoint
 	data := url.Values{}
 	data.Set("grant_type", "password")
 	data.Set("client_id", "cms-client")
 	data.Set("client_secret", "zHJsC5y8wRh8eVJosTA5dAJQSCJm2E7P")
-	data.Set("username", "admin")
-	data.Set("password", "inder@123")
+	data.Set("username", username)
+	data.Set("password", password)
 
 	// Create a new HTTP POST request
 	req, err := http.NewRequest("POST", apiURL, strings.NewReader(data.Encode()))
@@ -176,6 +176,39 @@ func GetKeycloakUser(adminToken, email string) (string, error) {
 
 }
 
-func GetKeycloakAuthToken() {
+func GetKeyclaokUserInfo(token string) (map[string]interface{}, error) {
 
+	apiEndpoint := "/realms/master/protocol/openid-connect/userinfo"
+	apiURL := KeyCloakBaseUrl + apiEndpoint
+
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		fmt.Println("ERROR: failed to create request", err)
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+
+	if err != nil {
+		fmt.Println("ERROR: failed to make request", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("ERROR: failed to get user info", resp)
+		return nil, errors.New("failed to get user")
+	}
+
+    var result map[string]interface{}
+    err = json.NewDecoder(resp.Body).Decode(&result)
+    if err != nil {
+        fmt.Println("ERROR: failed to decode response body:", err)
+        return nil, err
+    }
+
+    return result, nil
 }

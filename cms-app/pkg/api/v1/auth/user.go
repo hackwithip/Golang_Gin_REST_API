@@ -46,7 +46,7 @@ func Signup(c *gin.Context) {
 	user.Password = hashedPassword
 
 	// Get keycloak admin token
-	keyCloakAdminTokenResp, err := services.GetKeycloakAdminToken()
+	keyCloakAdminTokenResp, err := services.GetKeycloakAccessToken("admin", "inder@123")
 	if err!= nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get Keycloak admin token"})
         return
@@ -140,13 +140,23 @@ func Login(c *gin.Context) {
 	}
 
 	// Generate token
-	token, err := utils.GenerateToken(existingUser.Email, existingUser.ID)
+	// token, err := utils.GenerateToken(existingUser.Email, existingUser.ID)
+
+	// Get Token from keycloak
+	keyCloakAdminTokenResp, err := services.GetKeycloakAccessToken(user.Email, user.Password)
+	if err!= nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get Keycloak admin token"})
+        return
+    }
+
+	accessToken := keyCloakAdminTokenResp.AccessToken
+
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful!", "token": token})
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful!", "accessToken": accessToken})
 
 }
