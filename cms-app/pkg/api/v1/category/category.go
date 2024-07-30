@@ -1,7 +1,6 @@
 package category
 
 import (
-	"fmt"
 	"net/http"
 	"path/filepath"
 
@@ -27,7 +26,6 @@ func CreateCategory(c *gin.Context) {
 	}
 
 	if err := c.ShouldBind(&category); err != nil {
-		fmt.Println("---binding error---", err)
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request"})
 		return
 	}

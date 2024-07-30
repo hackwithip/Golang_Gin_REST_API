@@ -1,0 +1,426 @@
+basePath: /api/v1
+definitions:
+  models.AuthorCreationResponse:
+    properties:
+      id:
+        type: integer
+      image:
+        type: string
+      name:
+        type: string
+    type: object
+  models.Blog:
+    type: object
+  models.Category:
+    type: object
+  models.CategoryCreationResponse:
+    properties:
+      id:
+        type: integer
+      image:
+        type: string
+      name:
+        type: string
+    type: object
+  models.UserCreationReqPayload:
+    description: Request payload for user signup
+    properties:
+      email:
+        example: inderp@moneymul.com
+        type: string
+      name:
+        example: Inder
+        type: string
+      password:
+        example: inder@123
+        type: string
+    type: object
+  models.UserLoginReqPayload:
+    description: Reqest payload for user login
+    properties:
+      email:
+        example: inderp@moneymul.com
+        type: string
+      password:
+        example: inder@123
+        type: string
+    type: object
+  models.UserLoginResponse:
+    properties:
+      accessToken:
+        type: string
+      message:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+  models.UserResponse:
+    description: Response data after user signup
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    name: Inder
+    url: http://github.com/inder231
+  title: Documenting API
+  version: "1"
+paths:
+  /authors:
+    get:
+      description: Returns a list of all authors from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      security:
+      - JwtAuth: []
+      summary: List all authors
+      tags:
+      - Authors
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new author with the provided details and image
+      parameters:
+      - description: Author's name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Author's image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.AuthorCreationResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - JwtAuth: []
+      summary: Create a new author
+      tags:
+      - Authors
+  /authors/{id}:
+    delete:
+      description: Deletes an author from the database by their ID
+      parameters:
+      - description: Author ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      security:
+      - JwtAuth: []
+      summary: Delete an author
+      tags:
+      - Authors
+  /blogs:
+    get:
+      description: Get Blogs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Blog'
+            type: array
+        "500":
+          description: Internal Server Error
+      security:
+      - JwtAuth: []
+      summary: Get all blogs
+      tags:
+      - Blogs
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create a new blog post
+      parameters:
+      - description: Blog Image
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Blog Details
+        in: body
+        name: blog
+        required: true
+        schema:
+          $ref: '#/definitions/models.Blog'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Blog'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      security:
+      - JwtAuth: []
+      summary: Create Blog Post
+      tags:
+      - Blogs
+  /blogs/{id}:
+    delete:
+      description: Deletes a blog post by its ID
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      security:
+      - JwtAuth: []
+      summary: Delete a blog post
+      tags:
+      - Blogs
+    put:
+      consumes:
+      - application/json
+      description: Update the details of existing blog
+      parameters:
+      - description: Blog ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated Blog Details
+        in: body
+        name: blog
+        required: true
+        schema:
+          $ref: '#/definitions/models.Blog'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Blog'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      security:
+      - JwtAuth: []
+      summary: Update a blog post
+      tags:
+      - Blogs
+  /categories:
+    get:
+      description: Fetches a list of all categories from the database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Category'
+            type: array
+        "500":
+          description: Internal Server Error
+      security:
+      - JwtAuth: []
+      summary: List all categories
+      tags:
+      - Category
+  /category:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Creates a new category with an image
+      parameters:
+      - description: Category Image
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Category Details
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/models.Category'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CategoryCreationResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      security:
+      - JwtAuth: []
+      summary: Create a category
+      tags:
+      - Category
+  /category/{id}:
+    delete:
+      description: Deletes a category by its ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      security:
+      - JwtAuth: []
+      summary: Delete a category
+      tags:
+      - Category
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login request body
+      parameters:
+      - description: Login request body
+        in: body
+        name: '{object}'
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserLoginReqPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.UserLoginResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: User Login
+      tags:
+      - Authentication
+  /logout:
+    post:
+      description: Invalidate the user's session token
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+      security:
+      - JwtAuth: []
+      summary: Logout a user
+      tags:
+      - Authentication
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account with name, email, and password
+      parameters:
+      - description: Signup request body
+        in: body
+        name: '{object}'
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserCreationReqPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.UserResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: User Signup
+      tags:
+      - Authentication
+  /verify-token:
+    get:
+      consumes:
+      - application/json
+      description: Verify the provided token and return the verification result
+      parameters:
+      - description: Token to be verified
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Verification result
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Verify Token
+      tags:
+      - Authentication
+securityDefinitions:
+  JwtAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

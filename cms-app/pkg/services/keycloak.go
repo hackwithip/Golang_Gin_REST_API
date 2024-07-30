@@ -212,3 +212,35 @@ func GetKeyclaokUserInfo(token string) (map[string]interface{}, error) {
 
     return result, nil
 }
+
+func LogoutKeycloakUser(token string) error {
+	apiEndpoint := "/realms/master/protocol/openid-connect/logout"
+	apiURL := KeyCloakBaseUrl + apiEndpoint
+
+	formData := url.Values{}
+    formData.Set("refresh_token", token)
+
+    formData.Set("client_id", ClientId)
+    formData.Set("client_secret", ClientSecret)
+
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBufferString(formData.Encode()))
+    if err != nil {
+        return fmt.Errorf("failed to create logout request: %w", err)
+    }
+
+    req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    if err != nil {
+        return fmt.Errorf("error during logout request: %w", err)
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+        return fmt.Errorf("failed to invalidate token: status code %d", resp.StatusCode)
+    }
+
+    return nil
+
+}

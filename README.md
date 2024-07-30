@@ -71,3 +71,13 @@ cms-app/
 - Signup : -> Endpont : admin token -> 
 - Keycloak : signup upser => keycloak entry
 - Login -> table -> keycloak -> Token -> User
+
+### Temporal
+- To run temporal on our system
+    - RUN : `temporal server start-dev`
+    - Then run temporal code : navigate to temporal folder and run `go run main.go`
+
+### Keycloak
+- To run keycloak
+    - Navigate to keycloak folder
+    - RUN `bin/kc.sh start-dev`
